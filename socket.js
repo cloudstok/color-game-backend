@@ -1,10 +1,13 @@
 const { getUserDataFromSource } = require("./module/players/player-data");
 const { eventRouter } = require("./router/event-router");
-const { registerEvents } = require("./router/message-router");
-const { setCache } = require("./utilities/redis-connection");
+const { messageRouter } = require("./router/message-router");
+const { halls } = require("./utilities/common-function");
+const { setCache, deleteCache } = require("./utilities/redis-connection");
 
+let playerCount = Math.floor(Math.random() * (900 - 500 + 1)) + 500;
 const initSocket = (io)=> {
     eventRouter(io);  
+    initPlayerBase(io);
     const onConnection = async(socket)=>{
         console.log("socket connected");
         const token = socket.handshake.query.token;
@@ -19,15 +22,31 @@ const initSocket = (io)=> {
             console.log("Invalid token",token);
             return socket.disconnect(true); 
         };
-
-        socket.emit('info', { user_id: userData.userId, operator_id: userData.operatorId, balance: userData.balance, avatar: userData.image});
+        playerCount++;
+        socket.emit('message', { eventName: 'info', data: { user_id: userData.userId, operator_id: userData.operatorId, balance: userData.balance}});
         await setCache(`PL:${socket.id}`, JSON.stringify({...userData, socketId: socket.id}), 3600);
-        registerEvents(io, socket);
+        socket.emit('message', {eventName: 'rooms' , data: {halls}});
+        messageRouter(io, socket);
+        socket.on('disconnect', async() => {
+            playerCount--;
+            await deleteCache(`PL:${socket.id}`)
+        });
         socket.on('error', (error) => {
             console.error(`Socket error: ${socket.id}. Error: ${error.message}`);
         });
     }   
     io.on("connection", onConnection);
+}
+
+
+const initPlayerBase = async (io) => {
+    try {
+        io.emit('message', {eventName: "playerCount", data: {count: `${playerCount}`}});
+        setTimeout(() => initPlayerBase(io), 1000);
+    } catch (er) {
+        console.error(er);
+    }
+
 }
 
 module.exports = {initSocket}

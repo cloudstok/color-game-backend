@@ -7,14 +7,14 @@ const { routes } = require('./router/routes');
 require('dotenv').config();
 const port = process.env.PORT || 4200;
 const createLogger = require('./utilities/logger');
-// const {checkDatabaseConnection} = require('./utilities/db-connection');
-// const { initializeRedis } = require('./utilities/redis-connection');
-// const { connect } = require('./utilities/amqp');
+const {checkDatabaseConnection} = require('./utilities/db-connection');
+const { initializeRedis } = require('./utilities/redis-connection');
+const { connect } = require('./utilities/amqp');
 const logger = createLogger('Server');
 
 const startServer = async () => {
-        // await Promise.all([checkDatabaseConnection(), connect()]);
-        // await initializeRedis();
+        await Promise.all([checkDatabaseConnection(), connect()]);
+        await initializeRedis();
         var app = express();
         let server = http.createServer(app);
         var io = new socketIO.Server(server);
@@ -22,7 +22,6 @@ const startServer = async () => {
         app.use(express.json());
         initSocket(io);
         app.use(routes)
-
         server.listen(port, () => { logger.info(`Server listening at PORT ${port}`)});
 };
 

@@ -1,10 +1,16 @@
+const { placeBet } = require("../module/bets/bets-message");
+const createLogger = require('../utilities/logger');
+const logger = createLogger('Event');
 
-const registerEvents = (io, socket) => {
-    const events = {};
-    for (const [event, handler] of Object.entries(events)) {
-        console.log("Registering Event",event);
-        socket.on(event, (data) => handler(io, socket, data));
-    }
-};
+const messageRouter = async (io, socket) => {
+    socket.on('message', (data) => {
+        logger.info(data);
+        const event = data.split(':')
+        switch (event[0]) {
+            case 'PB': return placeBet(io, socket, event.slice(1, event.length));
+        }
+    })
+}
 
-module.exports = { registerEvents};
+
+module.exports = { messageRouter }

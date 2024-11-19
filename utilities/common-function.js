@@ -1,7 +1,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const getLogger = require('../utilities/logger');
-const { getCache } = require('./redis-connection');
+const thirdPartyLogger = getLogger('ThirdPartyAPICalls', 'jsonl');
 const failedLogger = getLogger('FailedThirdPartyAPICalls', 'jsonl');
 
 function generateUUIDv7() {
@@ -23,7 +23,7 @@ function generateUUIDv7() {
 const postDataToSourceForBet = async (data) => {
     try {
         return new Promise((resolve, reject) => {
-            let { webhookData, token, bet_id } = data;
+            const { webhookData, token, socketId } = data;
             const url = process.env.service_base_url;
             let clientServerOptions = {
                 method: 'POST',
@@ -35,14 +35,13 @@ const postDataToSourceForBet = async (data) => {
                 timeout: 1000 * 5
             };
             axios(clientServerOptions).then((result) => {
-                resolve({ status: result.status, ...data })
+                thirdPartyLogger.info(JSON.stringify({ req: data, res: result?.data }));
+                resolve({ status: result.status, ...webhookData, socketId });
             }).catch((err) => {
                 console.log(`[ERR] received from upstream server`, err);
                 let response = err.response ? err.response?.data : 'Something went wrong';
-                failedLogger.error(JSON.stringify({ req: { webhookData, token, socket_id, bet_id }, res: response}));
-                reject({
-                    response, token, bet_id
-                })
+                failedLogger.error(JSON.stringify({ req: { webhookData, token }, res: response}));
+                reject({...webhookData, socketId});
             })
         })
     } catch (err) {
@@ -55,9 +54,9 @@ const postDataToSourceForBet = async (data) => {
 
 const prepareDataForWebhook = async(betObj, key, socket)=> {
     try{
-        let { lobby_id, betAmount, game_id, bet_id, final_amount, user_id} = betObj;
-        let userIP = socket.handshake.address;
-        if (socket.handshake.headers['x-forwarded-for']) {
+        let { lobby_id, betAmount, game_id, bet_id, final_amount, user_id, txnId} = betObj;
+        let userIP = socket?.handshake?.address || "";
+        if (socket && socket.handshake.headers['x-forwarded-for']) {
             userIP = socket.handshake.headers['x-forwarded-for'].split(',')[0].trim();
         }
         let obj = {
@@ -75,7 +74,7 @@ const prepareDataForWebhook = async(betObj, key, socket)=> {
                 break;
             case "CREDIT":
                 obj.amount = final_amount;
-                obj.txn_ref_id = webhookData.txn_id;
+                obj.txn_ref_id = txnId;
                 obj.description = `${final_amount} credited for Aviator's game for Round ${lobby_id}`;
                 obj.txn_type = 1;
                 break;
@@ -89,18 +88,44 @@ const prepareDataForWebhook = async(betObj, key, socket)=> {
     }
 }
 
-const getUserData = async (key) => {
-    let userData = await getCache(key);
-    if (userData) {
-        try {
-            userData = JSON.parse(userData);
-        } catch (err) {
-            console.error(`[ERR] while updating avatar is::`, err);
-            return false;
-        }
-        return userData;
+const halls = [
+    {
+        id: 1,
+        min: 10,
+        max: 200,
+        chips: [10, 20, 30, 50, 100, 200]
+    },
+    {
+        id: 2,
+        min: 20,
+        max: 400,
+        chips: [20, 30, 50, 100, 200, 400]
+    },
+    {
+        id: 3,
+        min: 30,
+        max: 600,
+        chips: [30, 50, 100, 200, 400, 600]
+    },
+    {
+        id: 4,
+        min: 50,
+        max: 1000,
+        chips: [50, 100, 200, 400, 600, 1000]
+    },
+    {
+        id: 5,
+        min: 100,
+        max: 2000,
+        chips: [100, 200, 400, 600, 1000, 2000]
+    },
+    {
+        id: 6,
+        min: 200,
+        max: 4000,
+        chips: [200, 400, 600, 1000, 2000, 4000]
     }
-    return false;
-};
+]
 
-module.exports = { postDataToSourceForBet, prepareDataForWebhook, generateUUIDv7, getUserData }
+
+module.exports = { postDataToSourceForBet, prepareDataForWebhook, generateUUIDv7, halls }
