@@ -11,7 +11,6 @@ use `color_game`;
    `bet_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
    `bet_data` TEXT DEFAULT NULL,
    `room_id` INT NOT NULL,
-   `winning_number` INT NOT NULL,
    `total_max_mult` DECIMAL(10, 2) DEFAULT 0.00,
    `win_amount` decimal(10, 2) DEFAULT 0.00,
    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -44,8 +43,20 @@ CREATE TABLE IF NOT EXISTS `bets` (
    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
  ); 
 
+  CREATE TABLE IF NOT EXISTS `round_stats` (
+   `id` int primary key  auto_increment,
+   `lobby_id` BIGINT  NOT NULL,
+   `winning_number` INT NOT NULL,
+   `total_win_count` INT NOT NULL,
+   `total_bet_amount` DECIMAL(10, 2) DEFAULT 0.00,
+   `total_cashout_amount` DECIMAL(10, 2) DEFAULT 0.00,
+   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+ );
+
 ALTER TABLE `color_game`.`bets` ADD INDEX `inx_bet_id` (`bet_id` ASC) INVISIBLE, ADD INDEX `inx_lobby_id` (`lobby_id` ASC) INVISIBLE, ADD INDEX `inx_user_id` (`user_id` ASC) INVISIBLE, ADD INDEX `inx_operator_id` (`operator_id` ASC) VISIBLE, ADD INDEX `inx_bet_amount` (`bet_amount` ASC) INVISIBLE, ADD INDEX `inx_room_id` (`room_id` ASC) VISIBLE, ADD INDEX `inx_created_at` (`created_at` ASC) VISIBLE;
 
-ALTER TABLE `color_game`.`settlement` ADD INDEX `inx_bet_id` (`bet_id` ASC) VISIBLE, ADD INDEX `inx_lobby_id` (`lobby_id` ASC) VISIBLE, ADD INDEX `inx_user_id` (`user_id` ASC) INVISIBLE, ADD INDEX `inx_operator_id` (`operator_id` ASC) VISIBLE, ADD INDEX `inx_bet_amount` (`bet_amount` ASC) INVISIBLE, ADD INDEX `inx_room_id` (`room_id` ASC) INVISIBLE, ADD INDEX `inx_winning_number` (`winning_number` ASC) INVISIBLE, ADD INDEX `inx_total_max_mult` (`total_max_mult` ASC) INVISIBLE, ADD INDEX `inx_win_amount` (`win_amount` ASC) INVISIBLE, ADD INDEX `inx_created_at` (`created_at` ASC) VISIBLE;
+ALTER TABLE `color_game`.`settlement` ADD INDEX `inx_bet_id` (`bet_id` ASC) VISIBLE, ADD INDEX `inx_lobby_id` (`lobby_id` ASC) VISIBLE, ADD INDEX `inx_user_id` (`user_id` ASC) INVISIBLE, ADD INDEX `inx_operator_id` (`operator_id` ASC) VISIBLE, ADD INDEX `inx_bet_amount` (`bet_amount` ASC) INVISIBLE, ADD INDEX `inx_room_id` (`room_id` ASC) INVISIBLE, ADD INDEX `inx_total_max_mult` (`total_max_mult` ASC) INVISIBLE, ADD INDEX `inx_win_amount` (`win_amount` ASC) INVISIBLE, ADD INDEX `inx_created_at` (`created_at` ASC) VISIBLE;
 
 ALTER TABLE `color_game`.`lobbies` ADD INDEX `inx_lobby_id` (`lobby_id` ASC) INVISIBLE, ADD INDEX `inx_created_at` (`created_at` ASC) VISIBLE;
+
+ALTER TABLE `color_game`.`round_stats` ADD INDEX `inx_lobby_id` (`lobby_id` ASC) INVISIBLE, ADD INDEX `inx_winning_number` (`winning_number` ASC) VISIBLE;
