@@ -1,7 +1,7 @@
 const { getUserDataFromSource } = require("./module/players/player-data");
 const { eventRouter } = require("./router/event-router");
 const { messageRouter } = require("./router/message-router");
-const { halls } = require("./utilities/common-function");
+const { getHalls } = require("./utilities/common-function");
 const { setCache, deleteCache } = require("./utilities/redis-connection");
 
 let playerCount = Math.floor(Math.random() * (900 - 500 + 1)) + 500;
@@ -25,7 +25,7 @@ const initSocket = (io)=> {
         playerCount++;
         socket.emit('message', { eventName: 'info', data: { user_id: userData.userId, operator_id: userData.operatorId, balance: userData.balance}});
         await setCache(`PL:${socket.id}`, JSON.stringify({...userData, socketId: socket.id}), 3600);
-        socket.emit('message', {eventName: 'rooms' , data: {halls}});
+        socket.emit('message', {eventName: 'rooms' , data: {halls: getHalls()}});
         messageRouter(io, socket);
         socket.on('disconnect', async() => {
             playerCount--;

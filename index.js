@@ -10,11 +10,12 @@ const createLogger = require('./utilities/logger');
 const {checkDatabaseConnection} = require('./utilities/db-connection');
 const { initializeRedis } = require('./utilities/redis-connection');
 const { connect } = require('./utilities/amqp');
+const { loadConfig } = require('./utilities/load-config');
 const logger = createLogger('Server');
 
 const startServer = async () => {
-        await Promise.all([checkDatabaseConnection(), connect()]);
-        await initializeRedis();
+        await Promise.all([checkDatabaseConnection(), initializeRedis(), connect()]);
+        await loadConfig();
         var app = express();
         let server = http.createServer(app);
         var io = new socketIO.Server(server);

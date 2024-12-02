@@ -1,6 +1,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const getLogger = require('../utilities/logger');
+const { variableConfig } = require('./load-config');
 const thirdPartyLogger = getLogger('ThirdPartyAPICalls', 'jsonl');
 const failedLogger = getLogger('FailedThirdPartyAPICalls', 'jsonl');
 
@@ -127,5 +128,9 @@ const halls = [
     }
 ]
 
+const getHalls = () => {
+    return variableConfig.games_templates && variableConfig.games_templates.length > 0 ? variableConfig.games_templates : halls;
+}
 
-module.exports = { postDataToSourceForBet, prepareDataForWebhook, generateUUIDv7, halls }
+
+module.exports = { postDataToSourceForBet, prepareDataForWebhook, generateUUIDv7, getHalls }
