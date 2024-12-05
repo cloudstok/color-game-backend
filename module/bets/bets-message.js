@@ -42,6 +42,8 @@ const placeBet = async (io, socket, betData) => {
         bets.push(data);
     });
 
+    if(totalBetAmount < Number(appConfig.minBetAmount) || totalBetAmount > Number(appConfig.maxBetAmount)) return logEventAndEmitResponse(socket, betObj, 'Invalid Bet Amount', 'bet');
+
     if(isBetInvalid){
         return logEventAndEmitResponse(socket, betObj, 'Invalid Bet', 'bet');
     }
