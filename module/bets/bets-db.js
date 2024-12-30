@@ -27,9 +27,9 @@ const addSettleBet = async (settlements) => {
 const insertBets = async (betData) => {
     try {
         const { userBets, bet_id, roomId, totalBetAmount, lobby_id} = betData;
-        const betData = bet_id.split(':');
-        const operator_id = betData[3];
-        const user_id = betData[2];
+        const betIdData = bet_id.split(':');
+        const operator_id = betIdData[3];
+        const user_id = betIdData[2];
         await write(SQL_INSERT_BETS, [bet_id, lobby_id, decodeURIComponent(user_id), operator_id, totalBetAmount, userBets, roomId]);
         console.info(`Bet placed successfully for user`, user_id);
     } catch (err) {

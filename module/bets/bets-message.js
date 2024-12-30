@@ -1,4 +1,4 @@
-const { prepareDataForWebhook, postDataToSourceForBet, getHalls } = require('../../utilities/common-function');
+const { prepareDataForWebhook, postDataToSourceForBet, getHalls, generateUUIDv7 } = require('../../utilities/common-function');
 const { addSettleBet, insertBets, insertStatsData } = require('./bets-db');
 const { appConfig } = require('../../utilities/app-config');
 const { deleteCache, setCache, getCache } = require('../../utilities/redis-connection');
@@ -25,7 +25,7 @@ const placeBet = async (io, socket, betData) => {
     const { userId, operatorId, token, game_id, balance } = parsedPlayerDetails;
     const roomId = Number(betData[1]);
     const userBets = betData[0].split(',');
-    const bet_id = `BT:${Date.now()}:${userId}:${operatorId}`;
+    const bet_id = `BT:${generateUUIDv7()}:${userId}:${operatorId}`;
     const betObj = { bet_id, token, socket_id: parsedPlayerDetails.socketId, game_id, roomId };
     const halls = getHalls();
     const roomDetails = halls.find(room => room.id == [Number(roomId)]);
