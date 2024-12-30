@@ -8,7 +8,9 @@ const addSettleBet = async (settlements) => {
         const finalData = [];
         for (let settlement of settlements) {
             const { bet_id, lobby_id, totalBetAmount, userBets, roomId, totalMaxMult, winAmount } = settlement;
-            const [initial, user_id, operator_id] = bet_id.split(':');
+            const betData = bet_id.split(':');
+            const operator_id = betData[3];
+            const user_id = betData[2];
             finalData.push([bet_id, lobby_id, decodeURIComponent(user_id), operator_id, totalBetAmount, userBets, roomId, totalMaxMult, winAmount]);
         }
         const placeholders = finalData.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?)').join(',');
@@ -25,7 +27,9 @@ const addSettleBet = async (settlements) => {
 const insertBets = async (betData) => {
     try {
         const { userBets, bet_id, roomId, totalBetAmount, lobby_id} = betData;
-        const [initial, user_id, operator_id] = bet_id.split(':');
+        const betData = bet_id.split(':');
+        const operator_id = betData[3];
+        const user_id = betData[2];
         await write(SQL_INSERT_BETS, [bet_id, lobby_id, decodeURIComponent(user_id), operator_id, totalBetAmount, userBets, roomId]);
         console.info(`Bet placed successfully for user`, user_id);
     } catch (err) {

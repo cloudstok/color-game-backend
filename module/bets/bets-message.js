@@ -25,7 +25,7 @@ const placeBet = async (io, socket, betData) => {
     const { userId, operatorId, token, game_id, balance } = parsedPlayerDetails;
     const roomId = Number(betData[1]);
     const userBets = betData[0].split(',');
-    const bet_id = `BT:${userId}:${operatorId}`;
+    const bet_id = `BT:${Date.now()}:${userId}:${operatorId}`;
     const betObj = { bet_id, token, socket_id: parsedPlayerDetails.socketId, game_id, roomId };
     const halls = getHalls();
     const roomDetails = halls.find(room => room.id == [Number(roomId)]);
@@ -99,7 +99,9 @@ const settleBet = async (io, winningNumber, lobbyId) => {
             const settlements = [];
             await Promise.all(bets.map(async betData => {
                 const { bet_id, socket_id, token, game_id, lobby_id, txn_id } = betData;
-                const [initial, user_id, operator_id] = bet_id.split(':');
+                const betIdData = bet_id.split(':');
+                const operator_id = betIdData[3];
+                const user_id = betIdData[2];
                 let finalAmount = 0;
                 let totalMultiplier = 0;
                 betData['userBets'].map(bet => {
