@@ -12,6 +12,7 @@ const creditQueueLogger = getLogger('CreditQueue', 'jsonl');
 
 
 let lobbyData = {};
+let roundBets = [];
 
 const setCurrentLobby = (data) => {
     lobbyData = data;
@@ -63,9 +64,7 @@ const placeBet = async (io, socket, betData) => {
         return logEventAndEmitResponse(socket, betObj, 'Bet cancelled by upstream', 'bet');
     }
 
-    const existingBets = JSON.parse(await getCache(`CG:BETS`)) || [];
-    existingBets.push(betObj);
-    await setCache(`CG:BETS`, JSON.stringify(existingBets));
+    roundBets.push(betObj);
     logger.info(JSON.stringify({ betObj }));
 
     //Insert into Database
@@ -95,9 +94,8 @@ const settleBet = async (io, winningNumber, lobbyId) => {
         let sessionBetAmount = 0;
         let sessionWinCount = 0;
         let sessionWinAmount = 0;
-        const cachedBets = await getCache('CG:BETS');
-        if (cachedBets) {
-            const bets = JSON.parse(cachedBets);
+        if (roundBets.length > 0) {
+            const bets = roundBets;
             const settlements = [];
             await Promise.all(bets.map(async betData => {
                 const { bet_id, socket_id, token, game_id, lobby_id, txn_id } = betData;
@@ -143,7 +141,7 @@ const settleBet = async (io, winningNumber, lobbyId) => {
                 }
             }));
             await addSettleBet(settlements);
-            await deleteCache('CG:BETS');
+            roundBets.length = 0;
         };
         const TotalBetAmount = Number(oddsData.totalBetAmount + sessionBetAmount).toFixed(2);
         const TotalWinningAmount = Number(((oddsData.totalBetAmount + sessionBetAmount) * 0.25) + sessionWinAmount).toFixed(2);
