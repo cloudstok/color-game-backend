@@ -1,7 +1,7 @@
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const { insertLobbies } = require('./db');
 const createLogger = require('../../utilities/logger');
-const { setCurrentLobby, settleCallBacks, settleBet } = require('../bets/bets-message');
+const { setCurrentLobby, settleBet } = require('../bets/bets-message');
 const logger = createLogger('Color', 'jsonl');
 
 const initColor = async (io) => {
@@ -31,8 +31,8 @@ const initLobby = async (io) => {
     setCurrentLobby(recurLobbyData);
     io.emit("message", {eventName: 'color', data: {message: `${lobbyId}:${result}:RESULT`}});
 
-    await sleep(2000);
     await settleBet(io, result, lobbyId);
+    await sleep(2000);
 
     recurLobbyData['status'] = 2;
     setCurrentLobby(recurLobbyData);
