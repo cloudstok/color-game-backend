@@ -11,6 +11,7 @@ const initColor = async (io) => {
 
 
 const initLobby = async (io) => {
+    if(Number(process.env.ROUND_COUNT) >= 20) process.exit(1);
     const lobbyId = Date.now();
     let recurLobbyData = { lobbyId, status: 0};
     setCurrentLobby(recurLobbyData);
@@ -45,6 +46,7 @@ const initLobby = async (io) => {
     io.emit("history", JSON.stringify(history));
     logger.info(JSON.stringify(history));
     await insertLobbies(history);
+    process.env.ROUND_COUNT++;
     return initLobby(io);
 }
 
