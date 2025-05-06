@@ -12,7 +12,8 @@ const creditQueueLogger = getLogger('CreditQueue', 'jsonl');
 
 
 let lobbyData = {};
-let roundBets = [];
+// let roundBets = [];
+const roundBetsMap = new Map(); 
 
 const setCurrentLobby = (data) => {
     lobbyData = data;
@@ -64,7 +65,9 @@ const placeBet = async (io, socket, betData) => {
         return logEventAndEmitResponse(socket, betObj, 'Bet cancelled by upstream', 'bet');
     }
 
-    roundBets.push(betObj);
+    if (!roundBetsMap.has(lobbyData.lobbyId)) roundBetsMap.set(lobbyData.lobbyId, []);
+    roundBetsMap.get(lobbyData.lobbyId).push(betObj);
+
     logger.info(JSON.stringify({ betObj }));
 
     //Insert into Database
@@ -84,6 +87,7 @@ const placeBet = async (io, socket, betData) => {
 
 const settleBet = async (io, winningNumber, lobbyId) => {
     try {
+        const bets = roundBetsMap.get(lobbyId) || [];
         let oddsData = {
             lobbyId,
             resultTime: new Date().toLocaleTimeString(),
@@ -94,8 +98,7 @@ const settleBet = async (io, winningNumber, lobbyId) => {
         let sessionBetAmount = 0;
         let sessionWinCount = 0;
         let sessionWinAmount = 0;
-        if (roundBets.length > 0) {
-            const bets = roundBets;
+        if (bets.length > 0) {
             const settlements = [];
             await Promise.all(bets.map(async betData => {
                 const { bet_id, socket_id, token, game_id, lobby_id, txn_id } = betData;
@@ -143,7 +146,7 @@ const settleBet = async (io, winningNumber, lobbyId) => {
                 }
             }));
             await addSettleBet(settlements);
-            roundBets.length = 0;
+            roundBetsMap.delete(lobbyId);
         };
         const TotalBetAmount = Number(oddsData.totalBetAmount + sessionBetAmount).toFixed(2);
         const TotalWinningAmount = Number(((oddsData.totalBetAmount + sessionBetAmount) * 0.25) + sessionWinAmount).toFixed(2);
