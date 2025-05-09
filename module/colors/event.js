@@ -24,18 +24,20 @@ const initLobby = async (io) => {
             await sleep(1000);
         }
 
-
-        io.emit('message', { eventName: 'color', data: { message: `${lobbyId}:0:CALCULATING` } })
-        await sleep(1000);
-
         recurLobbyData['status'] = 1;
         setCurrentLobby(recurLobbyData);
-        io.emit("message", { eventName: 'color', data: { message: `${lobbyId}:${result}:RESULT` } });
 
-        await settleBet(io, result, lobbyId);
-        await sleep(2000);
+        io.emit('message', { eventName: 'color', data: { message: `${lobbyId}:0:CALCULATING` } })
+        await sleep(6000);
 
         recurLobbyData['status'] = 2;
+        setCurrentLobby(recurLobbyData);
+        io.emit("message", { eventName: 'color', data: { message: `${lobbyId}:${result}:RESULT` } });
+        await sleep(2000);
+
+        await settleBet(io, result, lobbyId);
+        
+        recurLobbyData['status'] = 3;
         setCurrentLobby(recurLobbyData);
         for (let z = 1; z <= end_delay; z++) {
             io.emit('message', { eventName: "color", data: { message: `${lobbyId}:${z}:ENDED` } });

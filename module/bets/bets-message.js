@@ -39,7 +39,10 @@ const placeBet = async (io, socket, betData) => {
         const data = { betAmount, chip };
         if (!roomDetails.chips.includes(Number(betAmount))) isBetInvalid = 1;
         if (Number(betAmount) < roomDetails.min || Number(betAmount) > roomDetails.max) isBetInvalid = 1;
-        if (lobbyData.lobbyId != lobby_id && lobbyData.status != 0) isBetInvalid = 1;
+        if (lobbyData.lobbyId != lobby_id) isBetInvalid = 1;
+        if(lobbyData.status != 1) isBetInvalid = 1;
+        const timeDiff = (Date.now() - Number(lobbyData.lobbyId)) / 1000;
+        if(timeDiff <= 10) isBetInvalid = 1;
         totalBetAmount += Number(betAmount);
         bets.push(data);
     });
