@@ -16,6 +16,7 @@ const initLobby = async (io) => {
         let recurLobbyData = { lobbyId, status: 0 };
         setCurrentLobby(recurLobbyData);
         const start_delay = 10;
+        const mid_delay = 6;
         const result = Math.floor(Math.random() * 10);
         const end_delay = 12;
 
@@ -27,8 +28,10 @@ const initLobby = async (io) => {
         recurLobbyData['status'] = 1;
         setCurrentLobby(recurLobbyData);
 
-        io.emit('message', { eventName: 'color', data: { message: `${lobbyId}:0:CALCULATING` } })
-        await sleep(6000);
+        for(let y = 1; y <= mid_delay; y++){
+            io.emit('message', { eventName: 'color', data: { message: `${lobbyId}:${y}:CALCULATING` } })
+            await sleep(1000);
+        }
 
         recurLobbyData['status'] = 2;
         setCurrentLobby(recurLobbyData);
